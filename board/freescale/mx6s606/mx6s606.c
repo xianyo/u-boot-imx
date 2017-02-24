@@ -84,7 +84,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define I2C_PAD MUX_PAD_CTRL(I2C_PAD_CTRL)
 
-#define DISP0_PWR_EN	IMX_GPIO_NR(1, 21)
+#define DISP0_PWR_EN	IMX_GPIO_NR(1, 9)
 #define EPDC_PAD_CTRL    (PAD_CTL_PKE | PAD_CTL_SPEED_MED |	\
 	PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
 
@@ -140,7 +140,7 @@ static iomux_v3_cfg_t const usdhc2_pads[] = {
 	MX6_PAD_NANDF_D5__SD2_DATA5	| MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NANDF_D6__SD2_DATA6	| MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NANDF_D7__SD2_DATA7	| MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_NANDF_D2__GPIO2_IO02	| MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
+	MX6_PAD_GPIO_4__GPIO1_IO04	| MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
 };
 
 static iomux_v3_cfg_t const usdhc3_pads[] = {
@@ -219,7 +219,7 @@ static iomux_v3_cfg_t const rgb_pads[] = {
 	MX6_PAD_DISP0_DAT21__IPU1_DISP0_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_DISP0_DAT22__IPU1_DISP0_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_DISP0_DAT23__IPU1_DISP0_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_SD1_DAT3__GPIO1_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void enable_rgb(struct display_info_t const *dev)
@@ -346,7 +346,7 @@ int mmc_map_to_kernel_blk(int dev_no)
 	return dev_no + 1;
 }
 
-#define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 2)
+#define USDHC2_CD_GPIO	IMX_GPIO_NR(1, 4)
 #define USDHC3_CD_GPIO	IMX_GPIO_NR(2, 0)
 
 int board_mmc_getcd(struct mmc *mmc)
@@ -866,7 +866,7 @@ int overwrite_console(void)
 int board_eth_init(bd_t *bis)
 {
 	setup_iomux_enet();
-	setup_pcie();
+	//setup_pcie();
 
 	return cpu_eth_init(bis);
 }
@@ -895,8 +895,8 @@ static void setup_usb(void)
 	 */
 	imx_iomux_set_gpr_register(1, 13, 1, 0);
 
-	imx_iomux_v3_setup_multiple_pads(usb_hc1_pads,
-					 ARRAY_SIZE(usb_hc1_pads));
+	//imx_iomux_v3_setup_multiple_pads(usb_hc1_pads,
+	//				 ARRAY_SIZE(usb_hc1_pads));
 }
 
 int board_ehci_hcd_init(int port)
@@ -920,10 +920,10 @@ int board_ehci_power(int port, int on)
 	case 0:
 		break;
 	case 1:
-		if (on)
-			gpio_direction_output(IMX_GPIO_NR(1, 29), 1);
-		else
-			gpio_direction_output(IMX_GPIO_NR(1, 29), 0);
+		//if (on)
+		//	gpio_direction_output(IMX_GPIO_NR(1, 29), 1);
+		//else
+		//	gpio_direction_output(IMX_GPIO_NR(1, 29), 0);
 		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
@@ -973,7 +973,7 @@ static struct pmic *pfuze;
 int power_init_board(void)
 {
 	unsigned int reg, ret;
-
+    return -ENODEV;
 	pfuze = pfuze_common_init(I2C_PMIC);
 	if (!pfuze)
 		return -ENODEV;
@@ -1246,7 +1246,7 @@ int check_recovery_cmd_file(void)
     int recovery_mode = 0;
 
     recovery_mode = recovery_check_and_clean_flag();
-
+#if 0
     /* Check Recovery Combo Button press or not. */
 	imx_iomux_v3_setup_multiple_pads(recovery_key_pads,
 			ARRAY_SIZE(recovery_key_pads));
@@ -1257,7 +1257,7 @@ int check_recovery_cmd_file(void)
 		button_pressed = 1;
 		printf("Recovery key pressed\n");
     }
-
+#endif
     return recovery_mode || button_pressed;
 }
 
