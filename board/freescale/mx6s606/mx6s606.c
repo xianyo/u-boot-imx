@@ -52,6 +52,11 @@
 #endif
 #endif /*CONFIG_FSL_FASTBOOT*/
 
+#ifdef CONFIG_UBOOT_LOGO_ENABLE
+#include <asm/imx-common/imx_pwm.h>
+#include <asm/imx-common/mxc_ipu.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
@@ -220,12 +225,47 @@ static iomux_v3_cfg_t const rgb_pads[] = {
 	MX6_PAD_DISP0_DAT22__IPU1_DISP0_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_DISP0_DAT23__IPU1_DISP0_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_EIM_BCLK__GPIO6_IO31 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
+
+iomux_v3_cfg_t vga_display_pads[] = {
+  MX6_PAD_EIM_A16__IPU1_DI1_DISP_CLK | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA10__IPU1_DI1_PIN15 | MUX_PAD_CTRL(NO_PAD_CTRL), 	/* DE */
+  MX6_PAD_EIM_DA11__IPU1_DI1_PIN02 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* HSync */
+  MX6_PAD_EIM_DA12__IPU1_DI1_PIN03 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* VSync */
+  MX6_PAD_EIM_DA9__IPU1_DISP1_DATA00 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA8__IPU1_DISP1_DATA01 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA7__IPU1_DISP1_DATA02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA6__IPU1_DISP1_DATA03 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA5__IPU1_DISP1_DATA04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA4__IPU1_DISP1_DATA05 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA3__IPU1_DISP1_DATA06 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA2__IPU1_DISP1_DATA07 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA1__IPU1_DISP1_DATA08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_DA0__IPU1_DISP1_DATA09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_EB1__IPU1_DISP1_DATA10 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_EB0__IPU1_DISP1_DATA11 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A17__IPU1_DISP1_DATA12 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A18__IPU1_DISP1_DATA13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A19__IPU1_DISP1_DATA14 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A20__IPU1_DISP1_DATA15 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A21__IPU1_DISP1_DATA16 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A22__IPU1_DISP1_DATA17 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A23__IPU1_DISP1_DATA18 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_A24__IPU1_DISP1_DATA19 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_D31__IPU1_DISP1_DATA20 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_D30__IPU1_DISP1_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_D26__IPU1_DISP1_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_D27__IPU1_DISP1_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void enable_rgb(struct display_info_t const *dev)
 {
+	imx_iomux_v3_setup_multiple_pads(vga_display_pads, ARRAY_SIZE(vga_display_pads));
 	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
 	gpio_direction_output(DISP0_PWR_EN, 1);
+	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
 }
 
 static struct i2c_pads_info i2c_pad_info1 = {
@@ -863,6 +903,139 @@ static void setup_display(void)
 }
 #endif /* CONFIG_VIDEO_IPUV3 */
 
+#ifdef CONFIG_UBOOT_LOGO_ENABLE
+#ifdef IPU_OUTPUT_MODE_LCD
+static void ipu_iomux_config(void)
+{
+	iomux_v3_cfg_t display_pads[] = {
+		MX6_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DI0_PIN15__IPU1_DI0_PIN15 | MUX_PAD_CTRL(NO_PAD_CTRL), 	/* DE */
+		MX6_PAD_DI0_PIN2__IPU1_DI0_PIN02 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* HSync */
+		MX6_PAD_DI0_PIN3__IPU1_DI0_PIN03 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* VSync */
+		MX6_PAD_DISP0_DAT0__IPU1_DISP0_DATA00 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT1__IPU1_DISP0_DATA01 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT2__IPU1_DISP0_DATA02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT3__IPU1_DISP0_DATA03 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT4__IPU1_DISP0_DATA04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT5__IPU1_DISP0_DATA05 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT6__IPU1_DISP0_DATA06 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT7__IPU1_DISP0_DATA07 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT8__IPU1_DISP0_DATA08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT9__IPU1_DISP0_DATA09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT10__IPU1_DISP0_DATA10 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT11__IPU1_DISP0_DATA11 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT12__IPU1_DISP0_DATA12 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT13__IPU1_DISP0_DATA13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT14__IPU1_DISP0_DATA14 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT15__IPU1_DISP0_DATA15 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT16__IPU1_DISP0_DATA16 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT17__IPU1_DISP0_DATA17 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT18__IPU1_DISP0_DATA18 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT19__IPU1_DISP0_DATA19 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT20__IPU1_DISP0_DATA20 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT21__IPU1_DISP0_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT22__IPU1_DISP0_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_DISP0_DAT23__IPU1_DISP0_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
+    MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+    MX6_PAD_EIM_BCLK__GPIO6_IO31 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	};
+
+	imx_iomux_v3_setup_multiple_pads(vga_display_pads, ARRAY_SIZE(vga_display_pads));
+	imx_iomux_v3_setup_multiple_pads(display_pads,
+			ARRAY_SIZE(display_pads));
+
+  gpio_direction_output(DISP0_PWR_EN, 1);
+	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
+}
+#endif
+
+#ifdef IPU_OUTPUT_MODE_LVDS
+static void setup_lvds_iomux(void)
+{
+	struct pwm_device pwm = {
+		.pwm_id = 0,
+		.pwmo_invert = 0,
+	};
+#if 0
+	imx_pwm_config(pwm, 25000, 50000);
+	imx_pwm_enable(pwm);
+
+	/* GPIO backlight */
+	imx_iomux_v3_setup_pad(MX6_PAD_SD1_DAT3__PWM1_OUT | MUX_PAD_CTRL(NO_PAD_CTRL));
+	/* LVDS panel CABC_EN */
+	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CS2__GPIO6_IO15 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CS3__GPIO6_IO16 | MUX_PAD_CTRL(NO_PAD_CTRL));
+
+	/*
+	 * Set LVDS panel CABC_EN to low to disable
+	 * CABC function. This function will turn backlight
+	 * automatically according to display content, so
+	 * simply disable it to get rid of annoying unstable
+	 * backlight phenomena.
+	 */
+	gpio_direction_output(IMX_GPIO_NR(6, 15), 0);
+	gpio_direction_output(IMX_GPIO_NR(6, 16), 0);
+#else
+
+	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
+
+	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 7), 1);
+#endif
+}
+#endif
+
+#ifdef IPU_OUTPUT_MODE_LCD
+static void setup_lcd_iomux(void)
+{
+	unsigned int reg;
+	struct pwm_device pwm = {
+		.pwm_id = 0,
+		.pwmo_invert = 0,
+	};
+
+#if 0
+	imx_pwm_config(pwm, 25000, 50000);
+	imx_pwm_enable(pwm);
+
+	/* LCD Power */
+	imx_iomux_v3_setup_pad(MX6_PAD_ENET_TXD0__GPIO1_IO30 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	/* LCD reset */
+	imx_iomux_v3_setup_pad(MX6_PAD_EIM_DA8__GPIO3_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	/* Backlight */
+	imx_iomux_v3_setup_pad(MX6_PAD_SD1_DAT3__PWM1_OUT | MUX_PAD_CTRL(NO_PAD_CTRL));
+
+	/* Set LCD Power to high. */
+	gpio_direction_output(IMX_GPIO_NR(1, 30), 1);
+
+	/* Set LCD reset to high. */
+	gpio_direction_output(IMX_GPIO_NR(3, 8), 1);
+#else
+	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
+
+	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 7), 1);
+#endif
+}
+#endif
+
+#ifdef IPU_OUTPUT_MODE_HDMI
+static void setup_hdmi_iomux(void)
+{
+	iomux_v3_cfg_t hdmi_i2c_pads[] = {
+		MX6_PAD_KEY_COL3__HDMI_TX_DDC_SCL | MUX_PAD_CTRL(NO_PAD_CTRL),
+		MX6_PAD_KEY_ROW3__HDMI_TX_DDC_SDA | MUX_PAD_CTRL(NO_PAD_CTRL),
+	};
+
+	imx_iomux_v3_setup_multiple_pads(hdmi_i2c_pads,
+			ARRAY_SIZE(hdmi_i2c_pads));
+}
+#endif
+
+#endif  //CONFIG_UBOOT_LOGO_ENABLE
+
 /*
  * Do not overwrite the console
  * Use always serial for U-Boot console
@@ -1185,6 +1358,84 @@ static const struct boot_mode board_boot_modes[] = {
 
 int board_late_init(void)
 {
+#ifdef CONFIG_UBOOT_LOGO_ENABLE
+	unsigned int size = DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8);
+	unsigned char * pData;
+	unsigned int start, count;
+	int i, bmpReady = 0;
+	int mmc_dev = mmc_get_env_devno();
+	struct mmc *mmc = find_mmc_device(mmc_dev);
+
+	pData = (unsigned char *)CONFIG_FB_BASE;
+#if 0
+	if (mmc)	{
+		if (mmc_init(mmc) == 0) {
+			start = ALIGN(UBOOT_LOGO_BMP_ADDR, mmc->read_bl_len) / mmc->read_bl_len;
+			count = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
+			mmc->block_dev.block_read(mmc_dev, start, count, pData);
+			bmpReady = 1;
+		}
+	}
+#endif
+	if (bmpReady == 0) {
+		// Fill RGB frame buffer
+		// Red
+		for (i = 0; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3); i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0xF8;
+#else
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0x00;
+			pData[i + 2] = 0xFF;
+#endif
+		}
+
+		// Green
+		for (; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3) * 2; i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0xE0;
+			pData[i + 1] = 0x07;
+#else
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0xFF;
+			pData[i + 2] = 0x00;
+#endif
+		}
+
+		// Blue
+		for (; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8); i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0x1F;
+			pData[i + 1] = 0x00;
+#else
+			pData[i + 0] = 0xFF;
+			pData[i + 1] = 0x00;
+			pData[i + 2] = 0x00;
+#endif
+		}
+	}
+
+#ifndef CONFIG_SYS_DCACHE_OFF
+	flush_dcache_range((u32)pData, (u32)(pData + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8)));
+#endif
+
+#ifdef IPU_OUTPUT_MODE_LVDS
+	setup_lvds_iomux();
+#endif
+
+#ifdef IPU_OUTPUT_MODE_LCD
+	ipu_iomux_config();
+	setup_lcd_iomux();
+#endif
+
+#ifdef IPU_OUTPUT_MODE_HDMI
+	setup_hdmi_iomux();
+#endif
+
+	ipu_display_setup();
+#endif
+
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif

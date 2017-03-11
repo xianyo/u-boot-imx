@@ -9,4 +9,5 @@ if [ ! -z $1 ];then
 fi
 
 make mx6qs606android_defconfig
+#make mx6qsabresdandroid_defconfig
 make
