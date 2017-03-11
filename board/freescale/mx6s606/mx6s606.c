@@ -242,13 +242,22 @@ static struct i2c_pads_info i2c_pad_info1 = {
 };
 
 iomux_v3_cfg_t const pcie_pads[] = {
-	MX6_PAD_EIM_D19__GPIO3_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* POWER */
-	MX6_PAD_GPIO_17__GPIO7_IO12 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* RESET */
+	MX6_PAD_ENET_TXD0__GPIO1_IO30 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* POWER */
+	MX6_PAD_ENET_TXD1__GPIO1_IO29 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* RESET */
+	MX6_PAD_ENET_TX_EN__GPIO1_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* DISABLE */
 };
 
 static void setup_pcie(void)
 {
 	imx_iomux_v3_setup_multiple_pads(pcie_pads, ARRAY_SIZE(pcie_pads));
+
+  // enable eth power
+	gpio_direction_output(IMX_GPIO_NR(1, 30) , 1);
+	gpio_direction_output(IMX_GPIO_NR(1, 28) , 1);
+	/* Reset PCIE PHY */
+	gpio_direction_output(IMX_GPIO_NR(1, 29) , 0);
+	udelay(500);
+	gpio_set_value(IMX_GPIO_NR(1, 29), 1);
 }
 
 iomux_v3_cfg_t const di0_pads[] = {
@@ -865,8 +874,8 @@ int overwrite_console(void)
 
 int board_eth_init(bd_t *bis)
 {
+	setup_pcie();
 	setup_iomux_enet();
-	//setup_pcie();
 
 	return cpu_eth_init(bis);
 }
@@ -973,7 +982,8 @@ static struct pmic *pfuze;
 int power_init_board(void)
 {
 	unsigned int reg, ret;
-    return -ENODEV;
+  //puts("no pfuze100\n");
+  return 0;
 	pfuze = pfuze_common_init(I2C_PMIC);
 	if (!pfuze)
 		return -ENODEV;
