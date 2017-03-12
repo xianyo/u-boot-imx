@@ -192,6 +192,7 @@
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
+	"splashpos=m,m\0"                  \
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
