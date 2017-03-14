@@ -266,6 +266,7 @@ static void enable_rgb(struct display_info_t const *dev)
 	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
 	gpio_direction_output(DISP0_PWR_EN, 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
+	gpio_direction_output(IMX_GPIO_NR(1, 9) , 1);
 }
 
 static struct i2c_pads_info i2c_pad_info1 = {
@@ -944,8 +945,9 @@ static void ipu_iomux_config(void)
 	imx_iomux_v3_setup_multiple_pads(display_pads,
 			ARRAY_SIZE(display_pads));
 
-  gpio_direction_output(DISP0_PWR_EN, 1);
+  	gpio_direction_output(DISP0_PWR_EN, 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
+	gpio_direction_output(IMX_GPIO_NR(1, 9) , 1);
 }
 #endif
 
