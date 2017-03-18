@@ -258,6 +258,9 @@ iomux_v3_cfg_t vga_display_pads[] = {
   MX6_PAD_EIM_D30__IPU1_DISP1_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
   MX6_PAD_EIM_D26__IPU1_DISP1_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
   MX6_PAD_EIM_D27__IPU1_DISP1_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_EIM_BCLK__GPIO6_IO31 | MUX_PAD_CTRL(NO_PAD_CTRL),
+  MX6_PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(NO_PAD_CTRL)
 };
 
 static void enable_rgb(struct display_info_t const *dev)
@@ -267,6 +270,7 @@ static void enable_rgb(struct display_info_t const *dev)
 	gpio_direction_output(DISP0_PWR_EN, 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
 	gpio_direction_output(IMX_GPIO_NR(1, 9) , 1);
+	gpio_direction_output(IMX_GPIO_NR(6, 7) , 1);
 }
 
 static struct i2c_pads_info i2c_pad_info1 = {
@@ -908,46 +912,14 @@ static void setup_display(void)
 #ifdef IPU_OUTPUT_MODE_LCD
 static void ipu_iomux_config(void)
 {
-	iomux_v3_cfg_t display_pads[] = {
-		MX6_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DI0_PIN15__IPU1_DI0_PIN15 | MUX_PAD_CTRL(NO_PAD_CTRL), 	/* DE */
-		MX6_PAD_DI0_PIN2__IPU1_DI0_PIN02 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* HSync */
-		MX6_PAD_DI0_PIN3__IPU1_DI0_PIN03 | MUX_PAD_CTRL(NO_PAD_CTRL),		/* VSync */
-		MX6_PAD_DISP0_DAT0__IPU1_DISP0_DATA00 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT1__IPU1_DISP0_DATA01 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT2__IPU1_DISP0_DATA02 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT3__IPU1_DISP0_DATA03 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT4__IPU1_DISP0_DATA04 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT5__IPU1_DISP0_DATA05 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT6__IPU1_DISP0_DATA06 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT7__IPU1_DISP0_DATA07 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT8__IPU1_DISP0_DATA08 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT9__IPU1_DISP0_DATA09 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT10__IPU1_DISP0_DATA10 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT11__IPU1_DISP0_DATA11 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT12__IPU1_DISP0_DATA12 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT13__IPU1_DISP0_DATA13 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT14__IPU1_DISP0_DATA14 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT15__IPU1_DISP0_DATA15 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT16__IPU1_DISP0_DATA16 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT17__IPU1_DISP0_DATA17 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT18__IPU1_DISP0_DATA18 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT19__IPU1_DISP0_DATA19 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT20__IPU1_DISP0_DATA20 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT21__IPU1_DISP0_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT22__IPU1_DISP0_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
-		MX6_PAD_DISP0_DAT23__IPU1_DISP0_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
-    MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
-    MX6_PAD_EIM_BCLK__GPIO6_IO31 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	};
 
+	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
 	imx_iomux_v3_setup_multiple_pads(vga_display_pads, ARRAY_SIZE(vga_display_pads));
-	imx_iomux_v3_setup_multiple_pads(display_pads,
-			ARRAY_SIZE(display_pads));
 
-  	gpio_direction_output(DISP0_PWR_EN, 1);
+  gpio_direction_output(DISP0_PWR_EN, 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 31) , 1);
 	gpio_direction_output(IMX_GPIO_NR(1, 9) , 1);
+	gpio_direction_output(IMX_GPIO_NR(6, 7), 1);
 }
 #endif
 
@@ -979,11 +951,12 @@ static void setup_lvds_iomux(void)
 	gpio_direction_output(IMX_GPIO_NR(6, 16), 0);
 #else
 
+	imx_iomux_v3_setup_pad(MX6_PAD_EIM_BCLK__GPIO6_IO31  | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 31), 1);
+
 	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
 	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
 
-	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(NO_PAD_CTRL));
-	gpio_direction_output(IMX_GPIO_NR(6, 7), 1);
 #endif
 }
 #endif
@@ -1014,11 +987,12 @@ static void setup_lcd_iomux(void)
 	/* Set LCD reset to high. */
 	gpio_direction_output(IMX_GPIO_NR(3, 8), 1);
 #else
+	imx_iomux_v3_setup_pad(MX6_PAD_EIM_BCLK__GPIO6_IO31  | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 31), 1);
+
 	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
 	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
 
-	imx_iomux_v3_setup_pad(MX6_PAD_NANDF_CLE__GPIO6_IO07 | MUX_PAD_CTRL(NO_PAD_CTRL));
-	gpio_direction_output(IMX_GPIO_NR(6, 7), 1);
 #endif
 }
 #endif
@@ -1379,7 +1353,9 @@ int board_late_init(void)
 		}
 	}
 #endif
+
 	if (bmpReady == 0) {
+    printf("logo test %d\n",DISPLAY_PIX_CLOCK);
 		// Fill RGB frame buffer
 		// Red
 		for (i = 0; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3); i += (DISPLAY_BPP / 8)) {
@@ -1436,6 +1412,7 @@ int board_late_init(void)
 #endif
 
 	ipu_display_setup();
+
 #endif
 
 #ifdef CONFIG_CMD_BMODE
