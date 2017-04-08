@@ -450,9 +450,9 @@
 
 #ifdef CONFIG_UBOOT_LOGO_ENABLE
 	/* Select one of the output mode */
-	/* #define IPU_OUTPUT_MODE_HDMI */
+	#define IPU_OUTPUT_MODE_HDMI
 	/* #define IPU_OUTPUT_MODE_LVDS */
-	#define IPU_OUTPUT_MODE_LCD
+	/* #define IPU_OUTPUT_MODE_LCD */
 
 	#define CONFIG_FB_BASE	(CONFIG_SYS_TEXT_BASE + 0x1000000)
   /* #define CONFIG_FB_BASE	(CONFIG_LOADADDR + 0x1000000) */
@@ -508,7 +508,7 @@
 	#define DISPLAY_DATA_POLARITY			0
 	#define DISPLAY_DATA_ENABLE_POLARITY		1
 
-	#define IPU_NUM 		1  /* 1 for IPU1, 2 for IPU2. */
+	#define IPU_NUM 		2  /* 1 for IPU1, 2 for IPU2. */
 	#define DI_NUM			0  /* 0 for DI0, 1 for DI1. */
 	#define DI_CLOCK_EXTERNAL_MODE  /* When clock external mode was defined, the DI clock root will be PLL5, without this macro, the DI root clock is IPU internal clock. */
 	#define CONFIG_IMX_HDMI
