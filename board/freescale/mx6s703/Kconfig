@@ -1,0 +1,15 @@
+if TARGET_MX6S703
+
+config SYS_BOARD
+	default "mx6s703"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_SOC
+	default "mx6"
+
+config SYS_CONFIG_NAME
+	default "mx6s703"
+
+endif

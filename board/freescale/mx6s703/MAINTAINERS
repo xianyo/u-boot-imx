@@ -1,0 +1,6 @@
+MX6S703 BOARD
+M:	zhuxy <zhuxy@163.com>
+S:	Maintained
+F:	board/freescale/mx6s703/
+F:	include/configs/mx6s703.h
+F:	configs/mx6qs703android_defconfig
