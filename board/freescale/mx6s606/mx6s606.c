@@ -21,6 +21,8 @@
 #include <miiphy.h>
 #include <netdev.h>
 
+#include <lcd.h>
+
 #if defined(CONFIG_MX6DL) && defined(CONFIG_MXC_EPDC)
 #include <lcd.h>
 #include <mxc_epdc_fb.h>
@@ -541,6 +543,13 @@ void board_late_mmc_env_init(void)
 	run_command(cmd, 0);
 }
 
+vidinfo_t panel_info = {
+	.vl_col = 800,
+	.vl_row = 600,
+	.vl_bpix = 3,
+	.cmap = 0,
+};
+
 #if defined(CONFIG_MX6DL) && defined(CONFIG_MXC_EPDC)
 vidinfo_t panel_info = {
 	.vl_refresh = 85,
@@ -1010,6 +1019,101 @@ static void setup_hdmi_iomux(void)
 }
 #endif
 
+void lcd_ctrl_init (void *lcdbase)
+{
+
+#ifdef CONFIG_UBOOT_LOGO_ENABLE
+	unsigned int size = DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8);
+	unsigned char * pData;
+	unsigned int start, count;
+	int i, bmpReady = 0;
+	int mmc_dev = mmc_get_env_devno();
+	struct mmc *mmc = find_mmc_device(mmc_dev);
+
+	pData = (unsigned char *)CONFIG_FB_BASE;
+#if 0
+	if (mmc)	{
+		if (mmc_init(mmc) == 0) {
+			start = ALIGN(UBOOT_LOGO_BMP_ADDR, mmc->read_bl_len) / mmc->read_bl_len;
+			count = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
+			mmc->block_dev.block_read(mmc_dev, start, count, pData);
+			bmpReady = 1;
+		}
+	}
+#endif
+
+#if 0
+	if (bmpReady == 0) {
+        printf("logo test %d\n",DISPLAY_PIX_CLOCK);
+		// Fill RGB frame buffer
+		// Red
+		for (i = 0; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3); i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0xF8;
+#else
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0x00;
+			pData[i + 2] = 0xFF;
+#endif
+		}
+
+		// Green
+		for (; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3) * 2; i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0xE0;
+			pData[i + 1] = 0x07;
+#else
+			pData[i + 0] = 0x00;
+			pData[i + 1] = 0xFF;
+			pData[i + 2] = 0x00;
+#endif
+		}
+
+		// Blue
+		for (; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8); i += (DISPLAY_BPP / 8)) {
+#if (DISPLAY_BPP == 16)
+			pData[i + 0] = 0x1F;
+			pData[i + 1] = 0x00;
+#else
+			pData[i + 0] = 0xFF;
+			pData[i + 1] = 0x00;
+			pData[i + 2] = 0x00;
+#endif
+		}
+	}
+
+#endif
+
+/* #ifndef CONFIG_SYS_DCACHE_OFF */
+/* 	flush_dcache_range((u32)pData, (u32)(pData + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8))); */
+/* #endif */
+
+
+#endif
+}
+
+/*
+ * Function sends the contents of the frame-buffer to the LCD
+ */
+void lcd_enable (void)
+{
+#ifdef IPU_OUTPUT_MODE_LVDS
+	setup_lvds_iomux();
+#endif
+
+#ifdef IPU_OUTPUT_MODE_LCD
+	ipu_iomux_config();
+	setup_lcd_iomux();
+#endif
+
+#ifdef IPU_OUTPUT_MODE_HDMI
+	setup_hdmi_iomux();
+#endif
+
+	ipu_display_setup();
+}
+
 #endif  //CONFIG_UBOOT_LOGO_ENABLE
 
 /*
@@ -1334,86 +1438,6 @@ static const struct boot_mode board_boot_modes[] = {
 
 int board_late_init(void)
 {
-#ifdef CONFIG_UBOOT_LOGO_ENABLE
-	unsigned int size = DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8);
-	unsigned char * pData;
-	unsigned int start, count;
-	int i, bmpReady = 0;
-	int mmc_dev = mmc_get_env_devno();
-	struct mmc *mmc = find_mmc_device(mmc_dev);
-
-	pData = (unsigned char *)CONFIG_FB_BASE;
-#if 0
-	if (mmc)	{
-		if (mmc_init(mmc) == 0) {
-			start = ALIGN(UBOOT_LOGO_BMP_ADDR, mmc->read_bl_len) / mmc->read_bl_len;
-			count = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
-			mmc->block_dev.block_read(mmc_dev, start, count, pData);
-			bmpReady = 1;
-		}
-	}
-#endif
-
-	if (bmpReady == 0) {
-    printf("logo test %d\n",DISPLAY_PIX_CLOCK);
-		// Fill RGB frame buffer
-		// Red
-		for (i = 0; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3); i += (DISPLAY_BPP / 8)) {
-#if (DISPLAY_BPP == 16)
-			pData[i + 0] = 0x00;
-			pData[i + 1] = 0xF8;
-#else
-			pData[i + 0] = 0x00;
-			pData[i + 1] = 0x00;
-			pData[i + 2] = 0xFF;
-#endif
-		}
-
-		// Green
-		for (; i < (DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8) / 3) * 2; i += (DISPLAY_BPP / 8)) {
-#if (DISPLAY_BPP == 16)
-			pData[i + 0] = 0xE0;
-			pData[i + 1] = 0x07;
-#else
-			pData[i + 0] = 0x00;
-			pData[i + 1] = 0xFF;
-			pData[i + 2] = 0x00;
-#endif
-		}
-
-		// Blue
-		for (; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8); i += (DISPLAY_BPP / 8)) {
-#if (DISPLAY_BPP == 16)
-			pData[i + 0] = 0x1F;
-			pData[i + 1] = 0x00;
-#else
-			pData[i + 0] = 0xFF;
-			pData[i + 1] = 0x00;
-			pData[i + 2] = 0x00;
-#endif
-		}
-	}
-
-#ifndef CONFIG_SYS_DCACHE_OFF
-	flush_dcache_range((u32)pData, (u32)(pData + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8)));
-#endif
-
-#ifdef IPU_OUTPUT_MODE_LVDS
-	setup_lvds_iomux();
-#endif
-
-#ifdef IPU_OUTPUT_MODE_LCD
-	ipu_iomux_config();
-	setup_lcd_iomux();
-#endif
-
-#ifdef IPU_OUTPUT_MODE_HDMI
-	setup_hdmi_iomux();
-#endif
-
-	ipu_display_setup();
-
-#endif
 
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
@@ -1711,3 +1735,4 @@ void reset_cpu(ulong addr)
 {
 }
 #endif
+
