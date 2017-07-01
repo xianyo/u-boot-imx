@@ -210,7 +210,7 @@ void lcd_clear(void)
 #endif
 	/* Paint the logo and retrieve LCD base address */
 	debug("[LCD] Drawing the logo...\n");
-#if defined(CONFIG_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
+#if defined(CONFIG_LCD_LOGO) && defined(CONFIG_LCD_INFO_BELOW_LOGO)
 	console_rows = (panel_info.vl_row - BMP_LOGO_HEIGHT);
 	console_rows /= VIDEO_FONT_HEIGHT;
 #else
@@ -231,7 +231,7 @@ void lcd_clear(void)
 	}
 
 	lcd_logo();
-#if defined(CONFIG_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
+#if defined(CONFIG_LCD_LOGO) && defined(CONFIG_LCD_INFO_BELOW_LOGO)
 	addr = (ulong)lcd_base + BMP_LOGO_HEIGHT * lcd_line_length;
 	lcd_init_console((void *)addr, console_rows, console_cols);
 #endif
@@ -630,6 +630,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		height = panel_info.vl_row - y;
 
 	bmap = (uchar *)bmp + get_unaligned_le32(&bmp->header.data_offset);
+    //lcd_line_length = (panel_info.vl_col * bpix) / 8;
 	fb   = (uchar *)(lcd_base +
 		(y + height - 1) * lcd_line_length + x * bpix / 8);
 

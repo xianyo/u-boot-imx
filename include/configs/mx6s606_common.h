@@ -423,7 +423,7 @@
 #define CONFIG_SYS_I2C_MXC
 #define CONFIG_SYS_I2C_SPEED		  100000
 
-/* #define CONFIG_UBOOT_LOGO_ENABLE */
+#define CONFIG_UBOOT_LOGO_ENABLE
 
 #ifndef CONFIG_UBOOT_LOGO_ENABLE
 /* Framebuffer */
@@ -449,6 +449,21 @@
 #endif  /* CONFIG_UBOOT_LOGO_ENABLE */
 
 #ifdef CONFIG_UBOOT_LOGO_ENABLE
+
+    #define CONFIG_LCD
+    #define CONFIG_LCD_LOGO
+    #define CONFIG_SPLASH_SCREEN
+    #define CONFIG_LCD_LOGO_SET_BG
+    #define CONFIG_SPLASH_SCREEN_ALIGN
+    #define CONFIG_CMD_BMP
+    #define CONFIG_LCD_BMP_RLE8
+    #define CONFIG_BMP_16BPP
+    #define CONFIG_BMP_24BPP
+    #define CONFIG_BMP_32BPP
+    #define CONFIG_SYS_WHITE_ON_BLACK
+    #define LCD_BPP				LCD_COLOR16
+
+
 	/* Select one of the output mode */
 	#define IPU_OUTPUT_MODE_HDMI
 	/* #define IPU_OUTPUT_MODE_LVDS */
@@ -473,7 +488,7 @@
 	/* For HDMI, 1280*720 resolution */
 	#define DISPLAY_WIDTH	1280
 	#define DISPLAY_HEIGHT	720
-	#define DISPLAY_BPP	32
+	#define DISPLAY_BPP	24
 	#define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	220
@@ -489,7 +504,7 @@
 	/* For HDMI, 1920*1080 resolution */
 	#define DISPLAY_WIDTH	1920
 	#define DISPLAY_HEIGHT	1080
-	#define DISPLAY_BPP	32
+	#define DISPLAY_BPP	24
 	#define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	148
@@ -518,8 +533,8 @@
 	/* For LVDS, 1024*768 resolution */
 	#define DISPLAY_WIDTH	1024
 	#define DISPLAY_HEIGHT	768
-	#define DISPLAY_BPP	32
-	#define DISPLAY_IF_BPP	18  /* RGB666 interface */
+	#define DISPLAY_BPP	24
+	#define DISPLAY_IF_BPP	24  /* RGB666 interface */
 
 	#define DISPLAY_HSYNC_START	220
 	#define DISPLAY_HSYNC_END	40
@@ -534,7 +549,7 @@
 	/* For LVDS, 1920*1080 resolution, dual channel */
 	#define DISPLAY_WIDTH	1920
 	#define DISPLAY_HEIGHT	1080
-	#define DISPLAY_BPP		32
+	#define DISPLAY_BPP		24
 	#define DISPLAY_IF_BPP	24	/* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	100
@@ -566,7 +581,7 @@
 	/* For LCD, 800*480 resolution */
 	#define DISPLAY_WIDTH	800
 	#define DISPLAY_HEIGHT	480
-	#define DISPLAY_BPP	32
+	#define DISPLAY_BPP	24
 	#define DISPLAY_IF_BPP	16  /* RGB565 interface */
 
 	#define DISPLAY_HSYNC_START	40
@@ -584,7 +599,7 @@
   /* For RGB, 1280*720 resolution */
   #define DISPLAY_WIDTH	1280
   #define DISPLAY_HEIGHT	720
-  #define DISPLAY_BPP	32
+  #define DISPLAY_BPP	24
   #define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
   #define DISPLAY_HSYNC_START	220
@@ -600,7 +615,7 @@
   /* For VGA, 1920*1080 resolution */
   #define DISPLAY_WIDTH	1920
   #define DISPLAY_HEIGHT	1080
-  #define DISPLAY_BPP	32
+  #define DISPLAY_BPP	24
   #define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
   #define DISPLAY_HSYNC_START	148
