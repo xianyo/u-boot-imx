@@ -193,6 +193,7 @@
 	"ip_dyn=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"splashpos=m,m\0"                  \
+	"splashimage=0x30000000\0"				\
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
@@ -449,12 +450,29 @@
 #endif  /* CONFIG_UBOOT_LOGO_ENABLE */
 
 #ifdef CONFIG_UBOOT_LOGO_ENABLE
+
+    #define CONFIG_LCD
+    /* #define CONFIG_LCD_LOGO */
+    #define CONFIG_SPLASH_SCREEN
+    #define CONFIG_LCD_LOGO_SET_BG
+    #define CONFIG_SPLASH_SCREEN_ALIGN
+    #define CONFIG_CMD_BMP
+    #define CONFIG_LCD_BMP_RLE8
+    #define CONFIG_BMP_8BPP
+    #define CONFIG_BMP_16BPP
+    #define CONFIG_BMP_24BMP
+    #define CONFIG_BMP_32BMP
+    #define CONFIG_SYS_WHITE_ON_BLACK
+    #define LCD_BPP				LCD_COLOR32
+
+
 	/* Select one of the output mode */
 	/* #define IPU_OUTPUT_MODE_HDMI */
 	#define IPU_OUTPUT_MODE_LVDS
 	/* #define IPU_OUTPUT_MODE_LCD */
 
 	#define CONFIG_FB_BASE	(CONFIG_SYS_TEXT_BASE + 0x1000000)
+    #define CONFIG_FB_ADDR CONFIG_FB_BASE
   /* #define CONFIG_FB_BASE	(CONFIG_LOADADDR + 0x1000000) */
 	#define UBOOT_LOGO_BMP_ADDR 0x00100000
 

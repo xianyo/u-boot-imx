@@ -193,6 +193,7 @@
 	"ip_dyn=yes\0" \
 	"console=" CONFIG_CONSOLE_DEV "\0" \
 	"splashpos=m,m\0"                  \
+	"splashimage=0x30000000\0"				\
 	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
@@ -451,17 +452,18 @@
 #ifdef CONFIG_UBOOT_LOGO_ENABLE
 
     #define CONFIG_LCD
-    #define CONFIG_LCD_LOGO
+    /* #define CONFIG_LCD_LOGO */
     #define CONFIG_SPLASH_SCREEN
     #define CONFIG_LCD_LOGO_SET_BG
     #define CONFIG_SPLASH_SCREEN_ALIGN
     #define CONFIG_CMD_BMP
     #define CONFIG_LCD_BMP_RLE8
+    #define CONFIG_BMP_8BPP
     #define CONFIG_BMP_16BPP
-    #define CONFIG_BMP_24BPP
-    #define CONFIG_BMP_32BPP
+    #define CONFIG_BMP_24BMP
+    #define CONFIG_BMP_32BMP
     #define CONFIG_SYS_WHITE_ON_BLACK
-    #define LCD_BPP				LCD_COLOR16
+    #define LCD_BPP				LCD_COLOR32
 
 
 	/* Select one of the output mode */
@@ -470,6 +472,7 @@
 	/* #define IPU_OUTPUT_MODE_LCD */
 
 	#define CONFIG_FB_BASE	(CONFIG_SYS_TEXT_BASE + 0x1000000)
+    #define CONFIG_FB_ADDR CONFIG_FB_BASE
   /* #define CONFIG_FB_BASE	(CONFIG_LOADADDR + 0x1000000) */
 	#define UBOOT_LOGO_BMP_ADDR 0x00100000
 
@@ -488,7 +491,7 @@
 	/* For HDMI, 1280*720 resolution */
 	#define DISPLAY_WIDTH	1280
 	#define DISPLAY_HEIGHT	720
-	#define DISPLAY_BPP	24
+	#define DISPLAY_BPP	32
 	#define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	220
@@ -504,7 +507,7 @@
 	/* For HDMI, 1920*1080 resolution */
 	#define DISPLAY_WIDTH	1920
 	#define DISPLAY_HEIGHT	1080
-	#define DISPLAY_BPP	24
+	#define DISPLAY_BPP	32
 	#define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	148
@@ -532,8 +535,8 @@
 #ifdef IPU_OUTPUT_MODE_LVDS
 	/* For LVDS, 1024*768 resolution */
 	#define DISPLAY_WIDTH	1024
-	#define DISPLAY_HEIGHT	768
-	#define DISPLAY_BPP	24
+	#define DISPLAY_HEIGHT	600
+	#define DISPLAY_BPP	32
 	#define DISPLAY_IF_BPP	24  /* RGB666 interface */
 
 	#define DISPLAY_HSYNC_START	220
@@ -544,12 +547,12 @@
 	#define DISPLAY_VSYNC_END	7
 	#define DISPLAY_VSYNC_WIDTH	10
 
-	#define DISPLAY_PIX_CLOCK	64000000  /*(DISPLAY_HSYNC_START + DISPLAY_HSYNC_END + DISPLAY_HSYNC_WIDTH + DISPLAY_WIDTH) * (DISPLAY_VSYNC_START + DISPLAY_VSYNC_END + DISPLAY_VSYNC_WIDTH + DISPLAY_HEIGHT) * refresh rate (60Hz) */
+	#define DISPLAY_PIX_CLOCK	65000000  /*(DISPLAY_HSYNC_START + DISPLAY_HSYNC_END + DISPLAY_HSYNC_WIDTH + DISPLAY_WIDTH) * (DISPLAY_VSYNC_START + DISPLAY_VSYNC_END + DISPLAY_VSYNC_WIDTH + DISPLAY_HEIGHT) * refresh rate (60Hz) */
 #if 0
 	/* For LVDS, 1920*1080 resolution, dual channel */
 	#define DISPLAY_WIDTH	1920
 	#define DISPLAY_HEIGHT	1080
-	#define DISPLAY_BPP		24
+	#define DISPLAY_BPP		32
 	#define DISPLAY_IF_BPP	24	/* RGB24 interface */
 
 	#define DISPLAY_HSYNC_START	100
@@ -565,13 +568,13 @@
 #endif
 	#define DISPLAY_VSYNC_POLARITY			0
 	#define DISPLAY_HSYNC_POLARITY			0
-	#define DISPLAY_CLOCK_POLARITY			0
+	#define DISPLAY_CLOCK_POLARITY			1
 	#define DISPLAY_DATA_POLARITY			0
 	#define DISPLAY_DATA_ENABLE_POLARITY		1
 
 	#define IPU_NUM			1  /* 1 for IPU1, 2 for IPU2. */
-	#define DI_NUM			1  /* 0 for DI0, 1 for DI1. */
-	#define LVDS_PORT		1  /* 0 for LVDS0, 1 for LVDS1. */
+	#define DI_NUM			0  /* 0 for DI0, 1 for DI1. */
+	#define LVDS_PORT		0  /* 0 for LVDS0, 1 for LVDS1. */
 	#define DI_CLOCK_EXTERNAL_MODE  /* When clock external mode was defined, the DI clock root will be PLL3 PFD1, without this macro, the DI root clock is IPU internal clock. */
 	/* #define LVDS_CLOCK_SRC_PLL5 */
 #endif
@@ -581,7 +584,7 @@
 	/* For LCD, 800*480 resolution */
 	#define DISPLAY_WIDTH	800
 	#define DISPLAY_HEIGHT	480
-	#define DISPLAY_BPP	24
+	#define DISPLAY_BPP	32
 	#define DISPLAY_IF_BPP	16  /* RGB565 interface */
 
 	#define DISPLAY_HSYNC_START	40
@@ -599,7 +602,7 @@
   /* For RGB, 1280*720 resolution */
   #define DISPLAY_WIDTH	1280
   #define DISPLAY_HEIGHT	720
-  #define DISPLAY_BPP	24
+  #define DISPLAY_BPP	32
   #define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
   #define DISPLAY_HSYNC_START	220
@@ -615,7 +618,7 @@
   /* For VGA, 1920*1080 resolution */
   #define DISPLAY_WIDTH	1920
   #define DISPLAY_HEIGHT	1080
-  #define DISPLAY_BPP	24
+  #define DISPLAY_BPP	32
   #define DISPLAY_IF_BPP	24  /* RGB24 interface */
 
   #define DISPLAY_HSYNC_START	148

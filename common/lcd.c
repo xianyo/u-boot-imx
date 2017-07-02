@@ -7,7 +7,7 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-/* #define DEBUG */
+/*#define DEBUG*/
 #include <config.h>
 #include <common.h>
 #include <command.h>
@@ -25,9 +25,6 @@
 #ifdef CONFIG_LCD_LOGO
 #include <bmp_logo.h>
 #include <bmp_logo_data.h>
-#if (CONSOLE_COLOR_WHITE >= BMP_LOGO_OFFSET) && (LCD_BPP != LCD_COLOR16)
-#error Default Color Map overlaps with Logo Color Map
-#endif
 #endif
 
 #ifdef CONFIG_SANDBOX
@@ -208,6 +205,7 @@ void lcd_clear(void)
 	}
 #endif
 #endif
+
 	/* Paint the logo and retrieve LCD base address */
 	debug("[LCD] Drawing the logo...\n");
 #if defined(CONFIG_LCD_LOGO) && defined(CONFIG_LCD_INFO_BELOW_LOGO)
@@ -290,8 +288,8 @@ ulong lcd_setmem(ulong addr)
 	ulong size;
 	int line_length;
 
-	debug("LCD panel info: %lu x %lu, %d bit/pix\n", panel_info.vl_col,
-		panel_info.vl_row, NBITS(panel_info.vl_bpix));
+	debug("LCD panel info: %lu x %lu, %d bit/pix %08lx\n\n", panel_info.vl_col,
+		panel_info.vl_row, NBITS(panel_info.vl_bpix), addr);
 
 	size = lcd_get_size(&line_length);
 
@@ -343,7 +341,11 @@ void lcd_logo_plot(int x, int y)
 	ushort i, j;
 	uchar *bmap = &bmp_logo_bitmap[0];
 	unsigned bpix = NBITS(panel_info.vl_bpix);
-	uchar *fb = (uchar *)(lcd_base + y * lcd_line_length + x * bpix / 8);
+	//lcd_line_length = (panel_info.vl_col * bpix) / 8;
+	//char *fb   = (uchar *)(lcd_base +
+	//	(y + BMP_LOGO_HEIGHT - 1) * lcd_line_length + x * bpix / 8);
+	char *fb   = (uchar *)(lcd_base +
+		y * lcd_line_length + x * bpix / 8);
 	ushort *fb16;
 
 	debug("Logo: width %d  height %d  colors %d\n",
@@ -596,7 +598,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		printf ("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
 			bpix, bmp_bpix);
 
-		return 1;
+		//return 1;
 	}
 
 	/*
@@ -606,9 +608,9 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 	if (bpix != bmp_bpix &&
 	    !(bmp_bpix == 8 && bpix == 16) &&
 	    !(bmp_bpix == 24 && bpix == 32)) {
-		printf ("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
+		printf ("Error2: %d bit/pixel mode, but BMP has %d bit/pixel\n",
 			bpix, get_unaligned_le16(&bmp->header.bit_count));
-		return 1;
+		//return 1;
 	}
 
 	debug("Display-bmp: %d x %d  with %d colors\n",
@@ -630,13 +632,15 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		height = panel_info.vl_row - y;
 
 	bmap = (uchar *)bmp + get_unaligned_le32(&bmp->header.data_offset);
-    //lcd_line_length = (panel_info.vl_col * bpix) / 8;
+    lcd_line_length = (panel_info.vl_col * bpix) / 8;
 	fb   = (uchar *)(lcd_base +
 		(y + height - 1) * lcd_line_length + x * bpix / 8);
 
+	debug("bmp_bpix %d bpix %d \n",bmp_bpix,bpix);
 	switch (bmp_bpix) {
 	case 1:
 	case 8: {
+		debug("8 bpp \n");
 		cmap_base = configuration_get_cmap();
 #ifdef CONFIG_LCD_BMP_RLE8
 		u32 compression = get_unaligned_le32(&bmp->header.compression);
@@ -673,6 +677,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 	}
 #if defined(CONFIG_BMP_16BPP)
 	case 16:
+		debug("16 bpp \n");
 		for (i = 0; i < height; ++i) {
 			WATCHDOG_RESET();
 			for (j = 0; j < width; j++)
@@ -685,6 +690,20 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 #endif /* CONFIG_BMP_16BPP */
 #if defined(CONFIG_BMP_24BMP)
 	case 24:
+		debug("24 bpp \n");
+		#if 1
+		char *lcd_base_temp=lcd_base;
+		char *bmap_temp=bmap;
+		for (i = 0; i < panel_info.vl_row; ++i) {
+			for (j = 0; j < panel_info.vl_col; j++) {
+				bmap_temp=bmap;
+				*(lcd_base_temp++) = *(bmap_temp++);
+				*(lcd_base_temp++) = *(bmap_temp++);
+				*(lcd_base_temp++) = *(bmap_temp++);
+				*(lcd_base_temp++) = 0;
+			}
+		}
+		#endif
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
 				*(fb++) = *(bmap++);
@@ -698,6 +717,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 #endif /* CONFIG_BMP_24BMP */
 #if defined(CONFIG_BMP_32BPP)
 	case 32:
+		debug("32 bpp \n");
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
 				*(fb++) = *(bmap++);
@@ -720,7 +740,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 
 static void lcd_logo(void)
 {
-	lcd_logo_plot(0, 0);
+	lcd_logo_plot(0,0);
 
 #ifdef CONFIG_LCD_INFO
 	lcd_set_col(LCD_INFO_X / VIDEO_FONT_WIDTH);

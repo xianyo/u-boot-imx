@@ -59,7 +59,11 @@
 #include <asm/imx-common/mxc_ipu.h>
 #endif
 
+#include "armt_logo.bmp.h"
+
 DECLARE_GLOBAL_DATA_PTR;
+
+unsigned short colormap[16777216];
 
 #define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
 	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |			\
@@ -544,10 +548,10 @@ void board_late_mmc_env_init(void)
 }
 
 vidinfo_t panel_info = {
-	.vl_col = 800,
-	.vl_row = 600,
-	.vl_bpix = 3,
-	.cmap = 0,
+	.vl_col = DISPLAY_WIDTH,
+	.vl_row = DISPLAY_HEIGHT,
+	.vl_bpix = LCD_BPP,
+	.cmap = colormap,
 };
 
 #if defined(CONFIG_MX6DL) && defined(CONFIG_MXC_EPDC)
@@ -796,6 +800,23 @@ static void enable_lvds(struct display_info_t const *dev)
 	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT |
 	       IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT;
 	writel(reg, &iomux->gpr[2]);
+
+	struct pwm_device pwm = {
+		.pwm_id = 0,
+		.pwmo_invert = 0,
+	};
+
+	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_1__PWM2_OUT | MUX_PAD_CTRL(NO_PAD_CTRL));
+
+	imx_pwm_config(pwm, 25000, 50000);
+	imx_pwm_enable(pwm);
+
+	imx_iomux_v3_setup_pad(MX6_PAD_EIM_BCLK__GPIO6_IO31  | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 31), 1);
+
+	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
+
 }
 
 struct display_info_t const displays[] = {{
@@ -960,11 +981,20 @@ static void setup_lvds_iomux(void)
 	gpio_direction_output(IMX_GPIO_NR(6, 16), 0);
 #else
 
-	imx_iomux_v3_setup_pad(MX6_PAD_EIM_BCLK__GPIO6_IO31  | MUX_PAD_CTRL(NO_PAD_CTRL));
-	gpio_direction_output(IMX_GPIO_NR(6, 31), 1);
+	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_1__PWM2_OUT | MUX_PAD_CTRL(NO_PAD_CTRL));
+
+	imx_pwm_config(pwm, 25000, 50000);
+	imx_pwm_enable(pwm);
 
 	imx_iomux_v3_setup_pad(MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL));
 	gpio_direction_output(IMX_GPIO_NR(1, 9), 1);
+
+	udelay(800000);
+
+	imx_iomux_v3_setup_pad(MX6_PAD_EIM_BCLK__GPIO6_IO31  | MUX_PAD_CTRL(NO_PAD_CTRL));
+	gpio_direction_output(IMX_GPIO_NR(6, 31), 1);
+
+
 
 #endif
 }
@@ -1019,6 +1049,9 @@ static void setup_hdmi_iomux(void)
 }
 #endif
 
+
+int do_ext4_load(cmd_tbl_t *cmdtp, int flag, int argc,
+                 char *const argv[]);
 void lcd_ctrl_init (void *lcdbase)
 {
 
@@ -1026,23 +1059,44 @@ void lcd_ctrl_init (void *lcdbase)
 	unsigned int size = DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8);
 	unsigned char * pData;
 	unsigned int start, count;
+	char *s = NULL;
+	ulong addr;
 	int i, bmpReady = 0;
 	int mmc_dev = mmc_get_env_devno();
 	struct mmc *mmc = find_mmc_device(mmc_dev);
 
 	pData = (unsigned char *)CONFIG_FB_BASE;
-#if 0
-	if (mmc)	{
-		if (mmc_init(mmc) == 0) {
-			start = ALIGN(UBOOT_LOGO_BMP_ADDR, mmc->read_bl_len) / mmc->read_bl_len;
-			count = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
-			mmc->block_dev.block_read(mmc_dev, start, count, pData);
-			bmpReady = 1;
+#if 1
+    s = getenv("splashimage");
+
+	if (s != NULL) {
+        puts("splashimage \n");
+		addr = simple_strtoul(s, NULL, 16);
+		memset(pData,0,size);
+		//memcpy((char *)addr, (char *)armt_logo_logo_bmp,armt_logo_logo_bmp_size);
+#if 1
+		if (mmc)	{
+			if (mmc_init(mmc) == 0) {
+                char *argv[] = {"ext4load","mmc","2:7" ,s ,"logo.bmp"};
+                int ret = do_ext4_load(NULL, 0, 5, argv);
+                if(ret==0){
+                    char *addr_tmp = (char *)addr;
+                    if(addr_tmp[0]=='B' && addr_tmp[1]=='M')
+                        bmpReady = 1;
+                }
+			}
 		}
+
+		if(bmpReady==0){
+			puts("default splashimage \n");
+			memcpy((char *)addr, (char *)armt_logo_logo_bmp,armt_logo_logo_bmp_size);
+		}
+#endif
 	}
 #endif
 
 #if 0
+	
 	if (bmpReady == 0) {
         printf("logo test %d\n",DISPLAY_PIX_CLOCK);
 		// Fill RGB frame buffer
@@ -1083,7 +1137,9 @@ void lcd_ctrl_init (void *lcdbase)
 		}
 	}
 
-#endif
+#ifndef CONFIG_SYS_DCACHE_OFF 
+	flush_dcache_range((u32)pData, (u32)(pData + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8))); 
+#endif 
 
 /* #ifndef CONFIG_SYS_DCACHE_OFF */
 /* 	flush_dcache_range((u32)pData, (u32)(pData + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8))); */
@@ -1098,9 +1154,10 @@ void lcd_ctrl_init (void *lcdbase)
  */
 void lcd_enable (void)
 {
-#ifdef IPU_OUTPUT_MODE_LVDS
-	setup_lvds_iomux();
-#endif
+	
+#ifndef CONFIG_SYS_DCACHE_OFF 
+	flush_dcache_range((u32)CONFIG_FB_BASE, (u32)(CONFIG_FB_BASE + DISPLAY_WIDTH * DISPLAY_HEIGHT * (DISPLAY_BPP / 8))); 
+#endif 
 
 #ifdef IPU_OUTPUT_MODE_LCD
 	ipu_iomux_config();
@@ -1112,6 +1169,11 @@ void lcd_enable (void)
 #endif
 
 	ipu_display_setup();
+
+#ifdef IPU_OUTPUT_MODE_LVDS
+	setup_lvds_iomux();
+#endif
+
 }
 
 #endif  //CONFIG_UBOOT_LOGO_ENABLE
